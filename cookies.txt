@@ -1,0 +1,7 @@
+# Sample cookies.txt for Oxford Educate PDF Downloader
+# Replace the value below with your actual cookie string from your browser
+# Example: sessionid=abc123; othercookie=value;
+
+sessionid=your_session_id_here; othercookie=your_other_cookie_here;
+
+kitaboo_metadata_chain_0=EXAMPLE_CHAIN; CloudFront-Policy=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vY29udGVudC5raXRhYm9vLmNvbS8qIiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzA5NzY4MDAwfX19XX0_; CloudFront-Signature=EXAMPLE_SIGNATURE; CloudFront-Key-Pair-Id=EXAMPLE_KEY_PAIR; kitaboo_metadata=EXAMPLE_METADATA; JSESSIONID=EXAMPLE_SESSION; AWSALB=EXAMPLE_ALB; AWSALBCORS=EXAMPLE_ALBCORS
