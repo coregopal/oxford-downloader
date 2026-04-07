@@ -33,7 +33,7 @@ class Book:
     author: str
     isbn: str
 
-class Znc:
+class Oxford:
     def __init__(self, ebook_id):
         self.session = requests.Session()
         self.session.verify = False  # Disable SSL verification
@@ -53,12 +53,13 @@ class Znc:
         return {'Cookie': '; '.join(result)}
 
     def get_toc(self):
-        soup = BeautifulSoup(self.session.get(f'https://www.oxfordeducate.in/ContentServer/mvc/s3view/{self.ebook_id}/html5/{self.ebook_id}/OPS/toc.xml').content, 'html.parser')
+        soup = BeautifulSoup(self.session.get(f'https://www.oxfordeducate.in/ContentServer/mvc/s3view/{self.ebook_id}/html5/{self.ebook_id}/OPS/toc.xml').content, 'xml')
         def dictify(node):
             result = {}
             for child_node in node.find_all("node", recursive=False):
                 page_id = child_node['id']
-                page = -1 if any(char.isalpha() for char in page_id) else int(page_id)
+                # Handle non-numeric page IDs by setting them to 1
+                page = 1 if any(char.isalpha() for char in page_id) else int(page_id)
                 key = child_node['title']
                 result[key] = [page, dictify(child_node) if child_node.find("node") else None]
             return result
@@ -66,13 +67,16 @@ class Znc:
         def tocify(toc_dict):
             toc = []
             for key, value in toc_dict.items():
-                toc.append([1, key, value[0]])
+                # Ensure page number is at least 1
+                page_num = max(1, value[0])
+                toc.append([1, key, page_num])
                 if value[1]:
-                    toc.extend([2, sub_key, sub_value[0]] for sub_key, sub_value in value[1].items())
+                    for sub_key, sub_value in value[1].items():
+                        sub_page_num = max(1, sub_value[0])
+                        toc.append([2, sub_key, sub_page_num])
             return toc
 
         return tocify(dictify(soup.toc))
-
 
     def get_page(self, url):
         response = self.session.get(url)
@@ -132,22 +136,19 @@ class Znc:
         print(f"\n[+] Downloaded {pdf_file.page_count} pages")
         try: 
             toc = self.get_toc()
-            pdf_file.set_toc(toc)
+            if toc and pdf_file.page_count > 0:
+                pdf_file.set_toc(toc)
         except Exception as e:
             print(f"\n[!] Error setting TOC: {str(e)}")
             pass
-            
-        # Sanitize the filename
-        safe_title = sanitize_filename(book.title)
-        output_file = f"{safe_title}.pdf"
+
+        output_file = f"{sanitize_filename(book.title)}.pdf"
         try:
-            # Ensure all pages are properly saved
             pdf_file.save(output_file, garbage=4, deflate=True, clean=True)
             print(f"\n[+] PDF saved as: {output_file}")
             print(f"[+] Total pages in saved PDF: {pdf_file.page_count}")
         except Exception as e:
             print(f"\n[!] Error saving PDF: {str(e)}")
-            # Try alternative save method
             try:
                 pdf_file.save(output_file, garbage=3)
                 print(f"\n[+] PDF saved with alternative method as: {output_file}")
@@ -156,6 +157,6 @@ class Znc:
 
 
 if __name__ == "__main__":
-    BOOKID = "447091"
-    znc_instance = Znc(BOOKID)
-    znc_instance.download_ebook()
+    BOOKID = "677318"
+    oxford_instance = Oxford(BOOKID)
+    oxford_instance.download_ebook() 
